@@ -10,12 +10,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .toast-slide {
-      animation: slideDown 0.3s ease-out forwards;
-    }
+    body { font-family: 'Inter', sans-serif; }
+    .toast-slide { animation: slideDown 0.3s ease-out forwards; }
     @keyframes slideDown {
       from { transform: translate(-50%, -100%); opacity: 0; }
       to { transform: translate(-50%, 0); opacity: 1; }
@@ -164,7 +160,7 @@
             <span class="text-slate-500 text-xs">to</span>
             <input type="date" id="date-end" onchange="setFilter('custom')" class="bg-transparent text-xs text-white focus:outline-none">
           </div>
-          <button onclick="exportCSV()" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all">
+          <button id="export-btn" type="button" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
             <i data-lucide="download" class="w-4 h-4"></i>
             <span>Export CSV</span>
           </button>
@@ -231,7 +227,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-    // Firebase configuration provided
     const firebaseConfig = {
       apiKey: "AIzaSyBoCUWDELmeOKMMqe4MiC4egmhgxdE9hyY",
       authDomain: "miracles-billing.firebaseapp.com",
@@ -242,7 +237,6 @@
       measurementId: "G-9EYGQ92QRK"
     };
 
-    // Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const billsRef = collection(db, "bills");
@@ -250,7 +244,6 @@
     let allBills = [];
     let currentFilter = 'today';
 
-    // Real-time listener for Firestore bills collection
     const q = query(billsRef, orderBy("timestamp", "desc"));
     onSnapshot(q, (snapshot) => {
       allBills = snapshot.docs.map(doc => {
@@ -271,7 +264,6 @@
       console.error("Firestore error:", error);
     });
 
-    // Make handlers globally available
     window.handleBillSubmit = async function(e) {
       e.preventDefault();
       const mobileInput = document.getElementById('customer-mobile');
@@ -417,29 +409,28 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    window.exportCSV = function() {
+    function triggerExportCSV() {
       const filtered = getFilteredBills();
       if (filtered.length === 0) {
-        alert("No bills available to export for the selected filter.");
+        alert("No bills found to export for the selected filter.");
         return;
       }
 
-      let csv = "Timestamp (IST),Mobile Number,Amount (INR)
-";
+      const rows = [["Timestamp (IST)", "Mobile Number", "Amount (INR)"]];
       filtered.forEach(b => {
         const istDate = b.dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-        csv += `"${istDate}","${b.mobile}",${b.amount}
-`;
+        rows.push([`"${istDate}"`, `"${b.mobile}"`, b.amount]);
       });
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
+      link.setAttribute("href", encodedUri);
       link.setAttribute("download", `365_Miracles_Bills_${currentFilter}_${new Date().toISOString().slice(0,10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    };
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -456,9 +447,13 @@
       document.getElementById('toast').classList.add('hidden');
     };
 
-    // Initialize Lucide Icons on Load
     document.addEventListener("DOMContentLoaded", () => {
       if (window.lucide) lucide.createIcons();
+      
+      const exportBtn = document.getElementById('export-btn');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', triggerExportCSV);
+      }
     });
   </script>
 </body>
