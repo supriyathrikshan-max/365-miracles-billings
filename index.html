@@ -90,7 +90,9 @@
                 id="customer-mobile" 
                 required 
                 pattern="[0-9]{10}"
+                minlength="10"
                 maxlength="10"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                 placeholder="Enter 10-digit mobile number"
                 class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-white text-base font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
               >
@@ -273,7 +275,18 @@
       const mobile = mobileInput.value.trim();
       const amount = parseFloat(amountInput.value);
 
-      if (!mobile || isNaN(amount) || amount <= 0) return;
+      // Enforce exactly 10 digits
+      if (!/^[0-9]{10}$/.test(mobile)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        mobileInput.focus();
+        return;
+      }
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid bill amount.");
+        amountInput.focus();
+        return;
+      }
 
       submitBtn.disabled = true;
       submitBtn.innerText = 'Submitting...';
