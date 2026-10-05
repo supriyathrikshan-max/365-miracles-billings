@@ -136,37 +136,60 @@
     <!-- REPORTS VIEW -->
     <section id="view-reports" class="hidden space-y-6">
       
-      <!-- Controls Header: Date Filter & Export -->
-      <div class="bg-slate-800/80 rounded-2xl border border-slate-700/70 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Search & Date Filter Header -->
+      <div class="bg-slate-800/80 rounded-2xl border border-slate-700/70 p-4 sm:p-5 space-y-4">
         
-        <!-- Date Filters -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="setFilter('today')" id="filter-today" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-amber-500 text-slate-950">
-            Today
-          </button>
-          <button onclick="setFilter('month')" id="filter-month" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
-            This Month
-          </button>
-          <button onclick="setFilter('year')" id="filter-year" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
-            This Year
-          </button>
-          <button onclick="setFilter('all')" id="filter-all" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
-            All Time
+        <!-- Top Row: Mobile Search Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:max-w-xs">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="search-mobile" 
+              oninput="renderReports()" 
+              placeholder="Search Mobile Number..." 
+              class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            >
+            <button onclick="clearMobileSearch()" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Export Button -->
+          <button id="export-btn" type="button" class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export CSV</span>
           </button>
         </div>
 
-        <!-- Custom Range & Export -->
-        <div class="flex flex-wrap items-center gap-2">
+        <hr class="border-slate-700/50">
+
+        <!-- Bottom Row: Date Filters -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setFilter('today')" id="filter-today" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-amber-500 text-slate-950">
+              Today
+            </button>
+            <button onclick="setFilter('month')" id="filter-month" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              This Month
+            </button>
+            <button onclick="setFilter('year')" id="filter-year" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              This Year
+            </button>
+            <button onclick="setFilter('all')" id="filter-all" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              All Time
+            </button>
+          </div>
+
           <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-700 rounded-xl px-2.5 py-1.5">
             <input type="date" id="date-start" onchange="setFilter('custom')" class="bg-transparent text-xs text-white focus:outline-none">
             <span class="text-slate-500 text-xs">to</span>
             <input type="date" id="date-end" onchange="setFilter('custom')" class="bg-transparent text-xs text-white focus:outline-none">
           </div>
-          <button id="export-btn" type="button" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>Export CSV</span>
-          </button>
         </div>
+
       </div>
 
       <!-- Key Metrics -->
@@ -275,7 +298,6 @@
       const mobile = mobileInput.value.trim();
       const amount = parseFloat(amountInput.value);
 
-      // Enforce exactly 10 digits
       if (!/^[0-9]{10}$/.test(mobile)) {
         alert("Please enter a valid 10-digit mobile number.");
         mobileInput.focus();
@@ -346,10 +368,27 @@
       renderReports();
     };
 
+    window.clearMobileSearch = function() {
+      const searchInput = document.getElementById('search-mobile');
+      if (searchInput) {
+        searchInput.value = '';
+        renderReports();
+      }
+    };
+
     function getFilteredBills() {
       const now = new Date();
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim().toLowerCase();
+
       return allBills.filter(bill => {
         const d = bill.dateObj;
+        
+        // Mobile Search Filter
+        if (searchQuery && !bill.mobile.toLowerCase().includes(searchQuery)) {
+          return false;
+        }
+
+        // Date Filter
         if (currentFilter === 'today') {
           return d.toDateString() === now.toDateString();
         } else if (currentFilter === 'month') {
@@ -368,7 +407,7 @@
       });
     }
 
-    function renderReports() {
+    window.renderReports = function() {
       const filtered = getFilteredBills();
       
       let totalRev = 0;
@@ -394,7 +433,10 @@
         'all': 'All Time',
         'custom': 'Custom Range'
       };
-      document.getElementById('report-period-label').innerText = labelMap[currentFilter] || 'Report';
+      
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim();
+      const labelText = searchQuery ? `Search: "${searchQuery}"` : (labelMap[currentFilter] || 'Report');
+      document.getElementById('report-period-label').innerText = labelText;
 
       const tbody = document.getElementById('customer-report-body');
       const customers = Object.keys(customerMap).map(m => ({
@@ -404,7 +446,7 @@
       })).sort((a, b) => b.total - a.total);
 
       if (customers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-slate-500 font-medium">No bills found for this period.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-slate-500 font-medium">No matching bills found.</td></tr>`;
         return;
       }
 
@@ -420,12 +462,12 @@
       `).join('');
 
       if (window.lucide) lucide.createIcons();
-    }
+    };
 
     function triggerExportCSV() {
       const filtered = getFilteredBills();
       if (filtered.length === 0) {
-        alert("No bills found to export for the selected filter.");
+        alert("No bills found to export.");
         return;
       }
 
@@ -435,11 +477,14 @@
         rows.push([`"${istDate}"`, `"${b.mobile}"`, b.amount]);
       });
 
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim();
+      const fileNameTag = searchQuery ? `Mobile_${searchQuery}` : currentFilter;
+
       const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `365_Miracles_Bills_${currentFilter}_${new Date().toISOString().slice(0,10)}.csv`);
+      link.setAttribute("download", `365_Miracles_Bills_${fileNameTag}_${new Date().toISOString().slice(0,10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
