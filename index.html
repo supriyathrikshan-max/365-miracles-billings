@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>365 Miracles - Billing & Reports</title>
+  <title>365 Miracles - Billing, Reports & Admin</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -28,7 +28,7 @@
           <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
         </div>
         <div>
-          <h4 class="font-bold text-sm">Bill Submitted Successfully!</h4>
+          <h4 class="font-bold text-sm" id="toast-title">Submitted Successfully!</h4>
           <p id="toast-message" class="text-xs text-emerald-100 mt-0.5"></p>
         </div>
       </div>
@@ -40,25 +40,30 @@
 
   <!-- Header -->
   <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/60 sticky top-0 z-40">
-    <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
         <div class="bg-amber-500/20 p-2 rounded-xl border border-amber-500/30">
           <i data-lucide="sparkles" class="w-6 h-6 text-amber-400"></i>
         </div>
         <div>
           <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white">365 Miracles</h1>
-          <p class="text-xs text-slate-400 font-medium">Snacks Shop Billing</p>
+          <p class="text-xs text-slate-400 font-medium">Snacks Shop Billing & Admin</p>
         </div>
       </div>
+      
       <!-- Tab Navigation Buttons -->
       <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700/50">
-        <button id="btn-billing" onclick="switchTab('billing')" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-md">
+        <button id="btn-billing" onclick="switchTab('billing')" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-md">
           <i data-lucide="receipt" class="w-4 h-4"></i>
           <span>Billing</span>
         </button>
-        <button id="btn-reports" onclick="switchTab('reports')" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200">
+        <button id="btn-reports" onclick="switchTab('reports')" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200">
           <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
           <span>Reports</span>
+        </button>
+        <button id="btn-admin" onclick="switchTab('admin')" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Admin</span>
         </button>
       </div>
     </div>
@@ -72,4 +77,712 @@
       <div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-xl p-6 sm:p-8 backdrop-blur-sm">
         <div class="mb-6 text-center">
           <h2 class="text-xl font-bold text-white">New Sale Entry</h2>
-          <p class="text-xs text-slate-400 mt
+          <p class="text-xs text-slate-400 mt-1">Enter customer mobile number and total bill amount</p>
+        </div>
+
+        <form id="billing-form" onsubmit="handleBillSubmit(event)" class="space-y-5">
+          <!-- Mobile Number -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+              Mobile Number <span class="text-amber-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="phone" class="w-5 h-5"></i>
+              </div>
+              <input 
+                type="tel" 
+                id="customer-mobile" 
+                required 
+                pattern="[0-9]{10}"
+                minlength="10"
+                maxlength="10"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                placeholder="Enter 10-digit mobile number"
+                class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-white text-base font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+              >
+            </div>
+          </div>
+
+          <!-- Total Bill Amount -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+              Total Amount (₹) <span class="text-amber-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-400 font-bold text-lg">
+                ₹
+              </div>
+              <input 
+                type="number" 
+                id="bill-amount" 
+                required 
+                min="1"
+                step="any"
+                placeholder="0.00"
+                class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white text-xl font-bold placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+              >
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            id="submit-btn"
+            class="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.98]"
+          >
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <span>Submit Bill</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- REPORTS VIEW -->
+    <section id="view-reports" class="hidden space-y-6">
+      
+      <!-- Search & Date Filter Header -->
+      <div class="bg-slate-800/80 rounded-2xl border border-slate-700/70 p-4 sm:p-5 space-y-4">
+        
+        <!-- Top Row: Mobile Search Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:max-w-xs">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="search-mobile" 
+              oninput="renderReports()" 
+              placeholder="Search Mobile Number..." 
+              class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            >
+            <button onclick="clearMobileSearch()" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Export Button -->
+          <button id="export-btn" type="button" class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+
+        <hr class="border-slate-700/50">
+
+        <!-- Bottom Row: Date Filters -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setFilter('today')" id="filter-today" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-amber-500 text-slate-950">
+              Today
+            </button>
+            <button onclick="setFilter('month')" id="filter-month" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              This Month
+            </button>
+            <button onclick="setFilter('year')" id="filter-year" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              This Year
+            </button>
+            <button onclick="setFilter('all')" id="filter-all" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600">
+              All Time
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-700 rounded-xl px-2.5 py-1.5">
+            <input type="date" id="date-start" onchange="setFilter('custom')" class="bg-transparent text-xs text-white focus:outline-none">
+            <span class="text-slate-500 text-xs">to</span>
+            <input type="date" id="date-end" onchange="setFilter('custom')" class="bg-transparent text-xs text-white focus:outline-none">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Revenue</span>
+            <i data-lucide="indian-rupee" class="w-5 h-5 text-amber-400"></i>
+          </div>
+          <div id="stat-revenue" class="text-2xl sm:text-3xl font-extrabold text-amber-400">₹0</div>
+        </div>
+
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Bills</span>
+            <i data-lucide="receipt" class="w-5 h-5 text-sky-400"></i>
+          </div>
+          <div id="stat-count" class="text-2xl sm:text-3xl font-extrabold text-white">0</div>
+        </div>
+
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Unique Customers</span>
+            <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <div id="stat-customers" class="text-2xl sm:text-3xl font-extrabold text-white">0</div>
+        </div>
+      </div>
+
+      <!-- Customer Summary Table -->
+      <div class="bg-slate-800/80 rounded-2xl border border-slate-700/70 overflow-hidden shadow-xl">
+        <div class="px-5 py-4 border-b border-slate-700/60 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Customer Spending Report</h3>
+          <span id="report-period-label" class="text-xs font-medium text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
+            Today
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700/60">
+              <tr>
+                <th class="px-5 py-3.5 font-semibold">Customer Mobile</th>
+                <th class="px-5 py-3.5 font-semibold text-center">Visits / Bills</th>
+                <th class="px-5 py-3.5 font-semibold text-right">Total Billed (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="customer-report-body" class="divide-y divide-slate-700/50 text-slate-200">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN VIEW -->
+    <section id="view-admin" class="hidden space-y-6 max-w-2xl mx-auto pt-2 sm:pt-4">
+      
+      <!-- Investment & Profit Calculator Form -->
+      <div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-xl p-6 sm:p-8 backdrop-blur-sm">
+        <div class="mb-6 flex items-center justify-between border-b border-slate-700/60 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+              <i data-lucide="calculator" class="w-6 h-6 text-amber-400"></i>
+              <span>Daily Profit & Investment Entry</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Record daily investment and total sales to track profit</p>
+          </div>
+          <span class="text-xs font-semibold text-sky-400 bg-sky-400/10 border border-sky-400/20 px-3 py-1 rounded-full">
+            IST Auto Timestamp
+          </span>
+        </div>
+
+        <form id="admin-form" onsubmit="handleAdminSubmit(event)" class="space-y-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Total Investment Input -->
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Total Investment (₹) <span class="text-amber-400">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-red-400 font-bold text-lg">
+                  ₹
+                </div>
+                <input 
+                  type="number" 
+                  id="admin-investment" 
+                  required 
+                  min="0"
+                  step="any"
+                  oninput="calculateProfit()"
+                  placeholder="e.g. 1500"
+                  class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white text-lg font-bold placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                >
+              </div>
+            </div>
+
+            <!-- Overall Sales Input -->
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Overall Sales Today (₹) <span class="text-amber-400">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-400 font-bold text-lg">
+                  ₹
+                </div>
+                <input 
+                  type="number" 
+                  id="admin-sales" 
+                  required 
+                  min="0"
+                  step="any"
+                  oninput="calculateProfit()"
+                  placeholder="e.g. 4500"
+                  class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white text-lg font-bold placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                >
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Calculated Net Profit Box -->
+          <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-4 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Calculated Profit (Sales - Investment):</span>
+            <span id="calculated-profit" class="text-xl font-extrabold text-emerald-400">₹0</span>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            id="admin-submit-btn"
+            class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.98]"
+          >
+            <i data-lucide="save" class="w-5 h-5"></i>
+            <span>Save Daily Admin Report</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Admin History Table & Export -->
+      <div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-xl overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-base text-white">Daily Investment & Profit Ledger</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Historical daily accounts recorded with IST timestamp</p>
+          </div>
+          <button id="export-admin-btn" type="button" class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export Admin CSV</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700/60">
+              <tr>
+                <th class="px-4 py-3 font-semibold">Date & IST Time</th>
+                <th class="px-4 py-3 font-semibold text-right">Investment (₹)</th>
+                <th class="px-4 py-3 font-semibold text-right">Sales (₹)</th>
+                <th class="px-4 py-3 font-semibold text-right">Profit (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="admin-report-body" class="divide-y divide-slate-700/50 text-slate-200">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBoCUWDELmeOKMMqe4MiC4egmhgxdE9hyY",
+      authDomain: "miracles-billing.firebaseapp.com",
+      projectId: "miracles-billing",
+      storageBucket: "miracles-billing.firebasestorage.app",
+      messagingSenderId: "759118190852",
+      appId: "1:759118190852:web:623ad6183e3b251fd65851",
+      measurementId: "G-9EYGQ92QRK"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const billsRef = collection(db, "bills");
+    const adminRef = collection(db, "admin_daily");
+
+    let allBills = [];
+    let adminLogs = [];
+    let currentFilter = 'today';
+
+    // Realtime Listener: Bills
+    const qBills = query(billsRef, orderBy("timestamp", "desc"));
+    onSnapshot(qBills, (snapshot) => {
+      allBills = snapshot.docs.map(doc => {
+        const data = doc.data();
+        let dateObj = new Date();
+        if (data.timestamp && data.timestamp.toDate) {
+          dateObj = data.timestamp.toDate();
+        }
+        return {
+          id: doc.id,
+          mobile: data.mobile,
+          amount: parseFloat(data.amount || 0),
+          dateObj: dateObj
+        };
+      });
+      renderReports();
+    }, (error) => {
+      console.error("Firestore Bills error:", error);
+    });
+
+    // Realtime Listener: Admin Logs
+    const qAdmin = query(adminRef, orderBy("timestamp", "desc"));
+    onSnapshot(qAdmin, (snapshot) => {
+      adminLogs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        let dateObj = new Date();
+        if (data.timestamp && data.timestamp.toDate) {
+          dateObj = data.timestamp.toDate();
+        }
+        return {
+          id: doc.id,
+          investment: parseFloat(data.investment || 0),
+          sales: parseFloat(data.sales || 0),
+          profit: parseFloat(data.profit || 0),
+          istTimeStr: data.istTimeStr || dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+          dateObj: dateObj
+        };
+      });
+      renderAdminLogs();
+    }, (error) => {
+      console.error("Firestore Admin error:", error);
+    });
+
+    // Handle Bill Submission
+    window.handleBillSubmit = async function(e) {
+      e.preventDefault();
+      const mobileInput = document.getElementById('customer-mobile');
+      const amountInput = document.getElementById('bill-amount');
+      const submitBtn = document.getElementById('submit-btn');
+
+      const mobile = mobileInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+
+      if (!/^[0-9]{10}$/.test(mobile)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        mobileInput.focus();
+        return;
+      }
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid bill amount.");
+        amountInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Submitting...';
+
+      try {
+        await addDoc(billsRef, {
+          mobile: mobile,
+          amount: amount,
+          timestamp: serverTimestamp()
+        });
+
+        showToast("Bill Submitted Successfully!", `Mobile: ${mobile} | Amount: ₹${amount}`);
+        mobileInput.value = '';
+        amountInput.value = '';
+      } catch (err) {
+        alert("Error saving bill: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5"></i><span>Submit Bill</span>`;
+        if (window.lucide) lucide.createIcons();
+      }
+    };
+
+    // Calculate Profit Realtime in Admin Form
+    window.calculateProfit = function() {
+      const inv = parseFloat(document.getElementById('admin-investment').value || 0);
+      const sales = parseFloat(document.getElementById('admin-sales').value || 0);
+      const profit = sales - inv;
+      
+      const profitEl = document.getElementById('calculated-profit');
+      profitEl.innerText = `₹${profit.toLocaleString('en-IN')}`;
+      
+      if (profit < 0) {
+        profitEl.className = "text-xl font-extrabold text-red-400";
+      } else {
+        profitEl.className = "text-xl font-extrabold text-emerald-400";
+      }
+    };
+
+    // Handle Admin Entry Submission
+    window.handleAdminSubmit = async function(e) {
+      e.preventDefault();
+      const invInput = document.getElementById('admin-investment');
+      const salesInput = document.getElementById('admin-sales');
+      const submitBtn = document.getElementById('admin-submit-btn');
+
+      const inv = parseFloat(invInput.value);
+      const sales = parseFloat(salesInput.value);
+
+      if (isNaN(inv) || inv < 0) {
+        alert("Please enter a valid investment amount.");
+        return;
+      }
+
+      if (isNaN(sales) || sales < 0) {
+        alert("Please enter a valid sales amount.");
+        return;
+      }
+
+      const profit = sales - inv;
+      const now = new Date();
+      const istTimeStr = now.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Saving Entry...';
+
+      try {
+        await addDoc(adminRef, {
+          investment: inv,
+          sales: sales,
+          profit: profit,
+          istTimeStr: istTimeStr,
+          timestamp: serverTimestamp()
+        });
+
+        showToast("Admin Entry Recorded!", `Investment: ₹${inv} | Sales: ₹${sales} | Profit: ₹${profit}`);
+        invInput.value = '';
+        salesInput.value = '';
+        calculateProfit();
+      } catch (err) {
+        alert("Error saving admin entry: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i><span>Save Daily Admin Report</span>`;
+        if (window.lucide) lucide.createIcons();
+      }
+    };
+
+    // Tab Navigation
+    window.switchTab = function(tab) {
+      const tabs = ['billing', 'reports', 'admin'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`btn-${t}`);
+        const view = document.getElementById(`view-${t}`);
+        if (t === tab) {
+          view.classList.remove('hidden');
+          btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-md";
+        } else {
+          view.classList.add('hidden');
+          btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200";
+        }
+      });
+
+      if (tab === 'reports') renderReports();
+      if (tab === 'admin') renderAdminLogs();
+    };
+
+    // Date Filter Selector
+    window.setFilter = function(filter) {
+      currentFilter = filter;
+      const buttons = ['today', 'month', 'year', 'all'];
+      buttons.forEach(b => {
+        const btn = document.getElementById(`filter-${b}`);
+        if (btn) {
+          if (b === filter) {
+            btn.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-amber-500 text-slate-950";
+          } else {
+            btn.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-700 text-slate-300 hover:bg-slate-600";
+          }
+        }
+      });
+      renderReports();
+    };
+
+    window.clearMobileSearch = function() {
+      const searchInput = document.getElementById('search-mobile');
+      if (searchInput) {
+        searchInput.value = '';
+        renderReports();
+      }
+    };
+
+    function getFilteredBills() {
+      const now = new Date();
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim().toLowerCase();
+
+      return allBills.filter(bill => {
+        const d = bill.dateObj;
+        
+        if (searchQuery && !bill.mobile.toLowerCase().includes(searchQuery)) {
+          return false;
+        }
+
+        if (currentFilter === 'today') {
+          return d.toDateString() === now.toDateString();
+        } else if (currentFilter === 'month') {
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        } else if (currentFilter === 'year') {
+          return d.getFullYear() === now.getFullYear();
+        } else if (currentFilter === 'custom') {
+          const startDate = document.getElementById('date-start').value;
+          const endDate = document.getElementById('date-end').value;
+          if (!startDate && !endDate) return true;
+          const start = startDate ? new Date(startDate) : new Date(0);
+          const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
+          return d >= start && d <= end;
+        }
+        return true;
+      });
+    }
+
+    window.renderReports = function() {
+      const filtered = getFilteredBills();
+      
+      let totalRev = 0;
+      const customerMap = {};
+
+      filtered.forEach(bill => {
+        totalRev += bill.amount;
+        if (!customerMap[bill.mobile]) {
+          customerMap[bill.mobile] = { count: 0, total: 0 };
+        }
+        customerMap[bill.mobile].count += 1;
+        customerMap[bill.mobile].total += bill.amount;
+      });
+
+      document.getElementById('stat-revenue').innerText = `₹${totalRev.toLocaleString('en-IN')}`;
+      document.getElementById('stat-count').innerText = filtered.length;
+      document.getElementById('stat-customers').innerText = Object.keys(customerMap).length;
+
+      const labelMap = {
+        'today': 'Today',
+        'month': 'This Month',
+        'year': 'This Year',
+        'all': 'All Time',
+        'custom': 'Custom Range'
+      };
+      
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim();
+      const labelText = searchQuery ? `Search: "${searchQuery}"` : (labelMap[currentFilter] || 'Report');
+      document.getElementById('report-period-label').innerText = labelText;
+
+      const tbody = document.getElementById('customer-report-body');
+      const customers = Object.keys(customerMap).map(m => ({
+        mobile: m,
+        count: customerMap[m].count,
+        total: customerMap[m].total
+      })).sort((a, b) => b.total - a.total);
+
+      if (customers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-slate-500 font-medium">No matching bills found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = customers.map(c => `
+        <tr class="hover:bg-slate-700/30 transition-colors">
+          <td class="px-5 py-3.5 font-bold text-white flex items-center space-x-2">
+            <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
+            <span>${c.mobile}</span>
+          </td>
+          <td class="px-5 py-3.5 text-center font-semibold text-slate-300">${c.count}</td>
+          <td class="px-5 py-3.5 text-right font-extrabold text-amber-400">₹${c.total.toLocaleString('en-IN')}</td>
+        </tr>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    };
+
+    function renderAdminLogs() {
+      const tbody = document.getElementById('admin-report-body');
+      if (!tbody) return;
+
+      if (adminLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 font-medium">No admin entries recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = adminLogs.map(log => `
+        <tr class="hover:bg-slate-700/30 transition-colors">
+          <td class="px-4 py-3 text-xs font-semibold text-slate-300">${log.istTimeStr}</td>
+          <td class="px-4 py-3 text-right font-bold text-red-400">₹${log.investment.toLocaleString('en-IN')}</td>
+          <td class="px-4 py-3 text-right font-bold text-emerald-400">₹${log.sales.toLocaleString('en-IN')}</td>
+          <td class="px-4 py-3 text-right font-extrabold ${log.profit >= 0 ? 'text-amber-400' : 'text-red-500'}">₹${log.profit.toLocaleString('en-IN')}</td>
+        </tr>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Export Sales CSV
+    function triggerExportCSV() {
+      const filtered = getFilteredBills();
+      if (filtered.length === 0) {
+        alert("No bills found to export.");
+        return;
+      }
+
+      const rows = [["Timestamp (IST)", "Mobile Number", "Amount (INR)"]];
+      filtered.forEach(b => {
+        const istDate = b.dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+        rows.push([`"${istDate}"`, `"${b.mobile}"`, b.amount]);
+      });
+
+      const searchQuery = (document.getElementById('search-mobile')?.value || '').trim();
+      const fileNameTag = searchQuery ? `Mobile_${searchQuery}` : currentFilter;
+
+      downloadBlobCSV(rows, `365_Miracles_Bills_${fileNameTag}_${new Date().toISOString().slice(0, 10)}.csv`);
+    }
+
+    // Export Admin Investment & Profit CSV
+    function triggerExportAdminCSV() {
+      if (adminLogs.length === 0) {
+        alert("No admin entry records found to export.");
+        return;
+      }
+
+      const rows = [["Date & IST Time", "Total Investment (INR)", "Overall Sales (INR)", "Net Profit (INR)"]];
+      adminLogs.forEach(log => {
+        rows.push([`"${log.istTimeStr}"`, log.investment, log.sales, log.profit]);
+      });
+
+      downloadBlobCSV(rows, `365_Miracles_Admin_Monthly_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    }
+
+    // Universal Blob Downloader
+    function downloadBlobCSV(rowsArray, filename) {
+      const csvString = rowsArray.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, filename);
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+
+    function showToast(title, msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-message').innerText = msg;
+      toast.classList.remove('hidden');
+
+      setTimeout(() => {
+        closeToast();
+      }, 3500);
+    }
+
+    window.closeToast = function() {
+      document.getElementById('toast').classList.add('hidden');
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) lucide.createIcons();
+      
+      const exportBtn = document.getElementById('export-btn');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', triggerExportCSV);
+      }
+
+      const exportAdminBtn = document.getElementById('export-admin-btn');
+      if (exportAdminBtn) {
+        exportAdminBtn.addEventListener('click', triggerExportAdminCSV);
+      }
+    });
+  </script>
+</body>
+</html>
