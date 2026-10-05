@@ -22,7 +22,7 @@
 
   <!-- Toast Notification Container -->
   <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden toast-slide w-11/12 max-w-md">
-    <div class="bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center justify-between border border-emerald-400/30">
+    <div id="toast-bg" class="bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center justify-between border border-emerald-400/30">
       <div class="flex items-center space-x-3">
         <div class="bg-white/20 p-1.5 rounded-full">
           <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
@@ -224,10 +224,10 @@
         </div>
       </div>
 
-      <!-- Customer Summary Table -->
+      <!-- Customer Bills Transaction Log Table -->
       <div class="bg-slate-800/80 rounded-2xl border border-slate-700/70 overflow-hidden shadow-xl">
         <div class="px-5 py-4 border-b border-slate-700/60 flex items-center justify-between">
-          <h3 class="font-bold text-base text-white">Customer Spending Report</h3>
+          <h3 class="font-bold text-base text-white">Sales & Bills Log</h3>
           <span id="report-period-label" class="text-xs font-medium text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
             Today
           </span>
@@ -237,9 +237,10 @@
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700/60">
               <tr>
+                <th class="px-5 py-3.5 font-semibold">Date & IST Time</th>
                 <th class="px-5 py-3.5 font-semibold">Customer Mobile</th>
-                <th class="px-5 py-3.5 font-semibold text-center">Visits / Bills</th>
-                <th class="px-5 py-3.5 font-semibold text-right">Total Billed (₹)</th>
+                <th class="px-5 py-3.5 font-semibold text-right">Amount (₹)</th>
+                <th class="px-5 py-3.5 font-semibold text-center">Action</th>
               </tr>
             </thead>
             <tbody id="customer-report-body" class="divide-y divide-slate-700/50 text-slate-200">
@@ -261,7 +262,7 @@
               <i data-lucide="calculator" class="w-6 h-6 text-amber-400"></i>
               <span>Daily Profit & Investment Entry</span>
             </h2>
-            <p class="text-xs text-slate-400 mt-1">Record daily investment and total sales to track profit</p>
+            <p class="text-xs text-slate-400 mt-1">Record daily investment and overall sales to track daily profit</p>
           </div>
           <span class="text-xs font-semibold text-sky-400 bg-sky-400/10 border border-sky-400/20 px-3 py-1 rounded-full">
             IST Auto Timestamp
@@ -319,7 +320,7 @@
 
           <!-- Calculated Net Profit Box -->
           <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-4 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Calculated Profit (Sales - Investment):</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Calculated Net Profit (Sales - Investment):</span>
             <span id="calculated-profit" class="text-xl font-extrabold text-emerald-400">₹0</span>
           </div>
 
@@ -330,17 +331,17 @@
             class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.98]"
           >
             <i data-lucide="save" class="w-5 h-5"></i>
-            <span>Save Daily Admin Report</span>
+            <span>Save Daily Admin Entry</span>
           </button>
         </form>
       </div>
 
-      <!-- Admin History Table & Export -->
+      <!-- Admin History Table & CSV Export -->
       <div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-xl overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             <h3 class="font-bold text-base text-white">Daily Investment & Profit Ledger</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Historical daily accounts recorded with IST timestamp</p>
+            <p class="text-xs text-slate-400 mt-0.5">Historical records stored with IST time & date</p>
           </div>
           <button id="export-admin-btn" type="button" class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
             <i data-lucide="download" class="w-4 h-4"></i>
@@ -356,6 +357,7 @@
                 <th class="px-4 py-3 font-semibold text-right">Investment (₹)</th>
                 <th class="px-4 py-3 font-semibold text-right">Sales (₹)</th>
                 <th class="px-4 py-3 font-semibold text-right">Profit (₹)</th>
+                <th class="px-4 py-3 font-semibold text-center">Action</th>
               </tr>
             </thead>
             <tbody id="admin-report-body" class="divide-y divide-slate-700/50 text-slate-200">
@@ -372,7 +374,7 @@
   <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBoCUWDELmeOKMMqe4MiC4egmhgxdE9hyY",
@@ -481,6 +483,30 @@
       }
     };
 
+    // Delete Bill Functionality
+    window.deleteBill = async function(docId, mobile, amount) {
+      if (confirm(`Are you sure you want to delete bill of ₹${amount} for ${mobile}?`)) {
+        try {
+          await deleteDoc(doc(db, "bills", docId));
+          showToast("Bill Deleted", `Removed entry for ${mobile} (₹${amount})`, true);
+        } catch (err) {
+          alert("Error deleting bill: " + err.message);
+        }
+      }
+    };
+
+    // Delete Admin Log Functionality
+    window.deleteAdminLog = async function(docId, istTimeStr) {
+      if (confirm(`Are you sure you want to delete admin ledger entry for ${istTimeStr}?`)) {
+        try {
+          await deleteDoc(doc(db, "admin_daily", docId));
+          showToast("Admin Record Deleted", `Removed entry for ${istTimeStr}`, true);
+        } catch (err) {
+          alert("Error deleting record: " + err.message);
+        }
+      }
+    };
+
     // Calculate Profit Realtime in Admin Form
     window.calculateProfit = function() {
       const inv = parseFloat(document.getElementById('admin-investment').value || 0);
@@ -541,12 +567,12 @@
         alert("Error saving admin entry: " + err.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i><span>Save Daily Admin Report</span>`;
+        submitBtn.innerHTML = `<i data-lucide="save" class="w-5 h-5"></i><span>Save Daily Admin Entry</span>`;
         if (window.lucide) lucide.createIcons();
       }
     };
 
-    // Tab Navigation
+    // Tab Switcher
     window.switchTab = function(tab) {
       const tabs = ['billing', 'reports', 'admin'];
       tabs.forEach(t => {
@@ -565,7 +591,7 @@
       if (tab === 'admin') renderAdminLogs();
     };
 
-    // Date Filter Selector
+    // Date Filters
     window.setFilter = function(filter) {
       currentFilter = filter;
       const buttons = ['today', 'month', 'year', 'all'];
@@ -623,20 +649,16 @@
       const filtered = getFilteredBills();
       
       let totalRev = 0;
-      const customerMap = {};
+      const customerSet = new Set();
 
       filtered.forEach(bill => {
         totalRev += bill.amount;
-        if (!customerMap[bill.mobile]) {
-          customerMap[bill.mobile] = { count: 0, total: 0 };
-        }
-        customerMap[bill.mobile].count += 1;
-        customerMap[bill.mobile].total += bill.amount;
+        customerSet.add(bill.mobile);
       });
 
       document.getElementById('stat-revenue').innerText = `₹${totalRev.toLocaleString('en-IN')}`;
       document.getElementById('stat-count').innerText = filtered.length;
-      document.getElementById('stat-customers').innerText = Object.keys(customerMap).length;
+      document.getElementById('stat-customers').innerText = customerSet.size;
 
       const labelMap = {
         'today': 'Today',
@@ -651,27 +673,30 @@
       document.getElementById('report-period-label').innerText = labelText;
 
       const tbody = document.getElementById('customer-report-body');
-      const customers = Object.keys(customerMap).map(m => ({
-        mobile: m,
-        count: customerMap[m].count,
-        total: customerMap[m].total
-      })).sort((a, b) => b.total - a.total);
 
-      if (customers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-slate-500 font-medium">No matching bills found.</td></tr>`;
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-500 font-medium">No matching bill entries found.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = customers.map(c => `
-        <tr class="hover:bg-slate-700/30 transition-colors">
-          <td class="px-5 py-3.5 font-bold text-white flex items-center space-x-2">
-            <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
-            <span>${c.mobile}</span>
-          </td>
-          <td class="px-5 py-3.5 text-center font-semibold text-slate-300">${c.count}</td>
-          <td class="px-5 py-3.5 text-right font-extrabold text-amber-400">₹${c.total.toLocaleString('en-IN')}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtered.map(b => {
+        const timeStr = b.dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "short", timeStyle: "short" });
+        return `
+          <tr class="hover:bg-slate-700/30 transition-colors">
+            <td class="px-5 py-3.5 text-xs text-slate-300 font-medium">${timeStr}</td>
+            <td class="px-5 py-3.5 font-bold text-white flex items-center space-x-2">
+              <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
+              <span>${b.mobile}</span>
+            </td>
+            <td class="px-5 py-3.5 text-right font-extrabold text-amber-400">₹${b.amount.toLocaleString('en-IN')}</td>
+            <td class="px-5 py-3.5 text-center">
+              <button onclick="deleteBill('${b.id}', '${b.mobile}', ${b.amount})" title="Delete Entry" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
 
       if (window.lucide) lucide.createIcons();
     };
@@ -681,7 +706,7 @@
       if (!tbody) return;
 
       if (adminLogs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 font-medium">No admin entries recorded yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500 font-medium">No admin entries recorded yet.</td></tr>`;
         return;
       }
 
@@ -691,13 +716,18 @@
           <td class="px-4 py-3 text-right font-bold text-red-400">₹${log.investment.toLocaleString('en-IN')}</td>
           <td class="px-4 py-3 text-right font-bold text-emerald-400">₹${log.sales.toLocaleString('en-IN')}</td>
           <td class="px-4 py-3 text-right font-extrabold ${log.profit >= 0 ? 'text-amber-400' : 'text-red-500'}">₹${log.profit.toLocaleString('en-IN')}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="deleteAdminLog('${log.id}', '${log.istTimeStr}')" title="Delete Record" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
         </tr>
       `).join('');
 
       if (window.lucide) lucide.createIcons();
     }
 
-    // Export Sales CSV
+    // Export Billing CSV
     function triggerExportCSV() {
       const filtered = getFilteredBills();
       if (filtered.length === 0) {
@@ -717,7 +747,7 @@
       downloadBlobCSV(rows, `365_Miracles_Bills_${fileNameTag}_${new Date().toISOString().slice(0, 10)}.csv`);
     }
 
-    // Export Admin Investment & Profit CSV
+    // Export Admin CSV
     function triggerExportAdminCSV() {
       if (adminLogs.length === 0) {
         alert("No admin entry records found to export.");
@@ -732,7 +762,7 @@
       downloadBlobCSV(rows, `365_Miracles_Admin_Monthly_Report_${new Date().toISOString().slice(0, 10)}.csv`);
     }
 
-    // Universal Blob Downloader
+    // Universal Mobile CSV Downloader
     function downloadBlobCSV(rowsArray, filename) {
       const csvString = rowsArray.map(e => e.join(",")).join("\n");
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
@@ -755,8 +785,16 @@
       }, 100);
     }
 
-    function showToast(title, msg) {
+    function showToast(title, msg, isDelete = false) {
       const toast = document.getElementById('toast');
+      const toastBg = document.getElementById('toast-bg');
+      
+      if (isDelete) {
+        toastBg.className = "bg-red-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center justify-between border border-red-400/30";
+      } else {
+        toastBg.className = "bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center justify-between border border-emerald-400/30";
+      }
+
       document.getElementById('toast-title').innerText = title;
       document.getElementById('toast-message').innerText = msg;
       toast.classList.remove('hidden');
